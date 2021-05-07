@@ -44,8 +44,9 @@ const responseHtml = `
 function init() {
   document.getElementById('href').textContent = window.location.href;
 
-  var t = window.location.hash.split('#access_token=')[1];
-  if (typeof t === 'undefined') {
+  var params = new URLSearchParams(window.location.hash.slice(1));
+  var t = params.get('access_token');
+  if (!t) {
     window.location.href = '/login';
     return;
   }
