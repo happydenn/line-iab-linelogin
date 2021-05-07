@@ -8,6 +8,7 @@ const port = parseInt(process.env.PORT, 10) || 6161;
 const cookieSecret = process.env.COOKIE_SECRET || 'thecookiesecret';
 const callbackUrl = `${process.env.APP_HOSTNAME}/callback`;
 const scope = 'profile openid';
+const liffId = process.env.LIFF_ID;
 
 const config = {
   client: {
@@ -42,8 +43,6 @@ const responseHtml = `
 <div><pre id="response"></pre></div>
 <script>
 function init() {
-  document.getElementById('href').textContent = window.location.href;
-
   var params = new URLSearchParams(window.location.hash.slice(1));
   var t = params.get('access_token');
   if (!t) {
@@ -72,9 +71,43 @@ init();
 </html>
 `;
 
+const liffHtml = `
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Login</title>
+</head>
+<body>
+<div><pre id="href"></pre></div>
+
+<div><pre id="response"></pre></div>
+<script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<script>
+function init() {
+  liff.init({ liffId: '${liffId}' })
+  .then(() => {
+    var res = liff.getDecodedIDToken();
+    var el = document.getElementById('response');
+    el.textContent = JSON.stringify(res, null, 2);
+  });
+}
+
+init();
+</script>
+</body>
+</html>
+`;
+
 app.get('/', (req, res) => {
   res.type('html');
   res.send(responseHtml);
+});
+
+app.get('/liff', (req, res) => {
+  res.type('html');
+  res.send(liffHtml);
 });
 
 app.get('/login', (req, res) => {
